@@ -1,0 +1,21 @@
+# Ignore Vivado junk
+*.jou
+*.log
+*.str
+*.cache/
+*.hw/
+*.ip_user_files/
+*.runs/
+*.sim/
+*.webtalk/
+*.data/
+*.sdk/
+*.vivado/
+*.tmp/
+*.backup/
+*.wdb
+*.dmp
+*.bin
+*.xsa
+*.bit
+*.bd
