@@ -1,7 +1,3 @@
-// atm_fsm.v
-// Finite State Machine for ATM Machine
-// Written for EE178 Final Project - Michael Danylchuk
-
 module atm_fsm (
     input clk,
     input rst,
@@ -39,7 +35,23 @@ module atm_fsm (
             state <= next_state;
     end
 
-    // Output logic
+    // selected_mode update (synchronously to avoid latch)
+    always @(posedge clk or posedge rst) begin
+        if (rst)
+            selected_mode <= 3'b000;
+        else if (state == MENU) begin
+            case (menu_input)
+                3'b001: selected_mode <= 3'b001;
+                3'b010: selected_mode <= 3'b010;
+                3'b011: selected_mode <= 3'b011;
+                3'b100: selected_mode <= 3'b100;
+                3'b101: selected_mode <= 3'b101;
+                default: selected_mode <= 3'b000;
+            endcase
+        end
+    end
+
+    // Output logic and next state
     always @(*) begin
         // Default outputs
         next_state = state;
@@ -68,11 +80,11 @@ module atm_fsm (
 
             MENU: begin
                 case (menu_input)
-                    3'b001: begin selected_mode = 3'b001; next_state = PREVIEW; end
-                    3'b010: begin selected_mode = 3'b010; next_state = PREVIEW; end
-                    3'b011: begin selected_mode = 3'b011; next_state = PREVIEW; end
-                    3'b100: begin selected_mode = 3'b100; next_state = PREVIEW; end
-                    3'b101: begin selected_mode = 3'b101; next_state = PREVIEW; end
+                    3'b001,
+                    3'b010,
+                    3'b011,
+                    3'b100,
+                    3'b101: next_state = PREVIEW;
                     default: next_state = MENU;
                 endcase
             end
@@ -94,7 +106,7 @@ module atm_fsm (
                 else begin
                     case (selected_mode)
                         3'b001: next_state = DISPLAY_BALANCE;
-                        3'b010: next_state = WITHDRAWING;
+                        3'b010,
                         3'b011: next_state = WITHDRAWING;
                         3'b100: next_state = DEPOSITING;
                         3'b101: next_state = EXIT;
@@ -104,8 +116,8 @@ module atm_fsm (
             end
 
             DISPLAY_BALANCE: begin
-                leds[2] = 1;               // Balance display indicator
-                leds[7:0] = balance;       // Binary display of balance on LD0-LD7
+                leds[2] = 1;
+                leds[7:0] = balance; // Display balance in binary on LD0-LD7
                 beep = 1;
                 next_state = MENU;
             end
@@ -124,10 +136,10 @@ module atm_fsm (
                 if (confirm_btn) begin
                     if (balance >= withdraw_amount) begin
                         balance = balance - withdraw_amount;
-                        leds[10] = 1; // Success (green LED)
+                        leds[10] = 1; // Success (green)
                         beep = 1;
                     end else begin
-                        leds[9] = 1;  // Fail (red LED)
+                        leds[9] = 1;  // Fail (red)
                         beep = 1;
                     end
                     next_state = MENU;
