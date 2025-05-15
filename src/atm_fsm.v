@@ -2,33 +2,22 @@
 // Finite State Machine for ATM Machine
 // Written for EE178 Final Project - Michael Danylchuk
 
-// atm_fsm.v
-// Finite State Machine for ATM Machine
-// Written for EE178 Final Project - Michael Danylchuk
-
-// atm_fsm.v
-// Finite State Machine for ATM Machine
-// Updated with PREVIEW state flash for menu actions
-
-// atm_fsm.v
-// Final FSM for ATM Machine - with preview_active output
-
 module atm_fsm (
     input clk,
     input rst,
-    input [1:0] card_input,      // 00: No card, 01: Invalid, 10: Valid
-    input [2:0] menu_input,      // 001: Balance, 010: Rapid Withdraw, 011: Withdraw, 100: Deposit, 101: Exit
+    input [1:0] card_input,         // 00: No card, 01: Invalid, 10: Valid
+    input [2:0] menu_input,         // 001: Balance, 010: Rapid Withdraw, etc.
     input confirm_btn,
-    input [7:0] deposit_amount,
-    input [7:0] withdraw_amount,
+    input [3:0] deposit_amount,     // Use only 4 bits now
+    input [2:0] withdraw_amount,    // Use only 3 bits now
     output reg [7:0] balance,
-    output reg [10:0] leds,      // LD0-LD10
-    output reg [3:0] seg_value,  // 7-segment preview digit
+    output reg [10:0] leds,         // LD0-LD10
+    output reg [3:0] seg_value,     // preview code (still usable via LEDs if desired)
     output reg beep,
-    output reg preview_active    // NEW output for top.v to use
+    output reg preview_active
 );
 
-    // FSM State Definitions
+    // FSM States
     parameter IDLE             = 4'b0000,
               CARD_CHECK       = 4'b0001,
               MENU             = 4'b0010,
@@ -42,7 +31,7 @@ module atm_fsm (
     reg [2:0] selected_mode;
     reg [23:0] preview_timer;
 
-    // State transition logic
+    // State transition
     always @(posedge clk or posedge rst) begin
         if (rst)
             state <= IDLE;
@@ -52,7 +41,7 @@ module atm_fsm (
 
     // Output logic
     always @(*) begin
-        // Default values
+        // Default outputs
         next_state = state;
         leds = 11'b0;
         beep = 0;
@@ -67,11 +56,11 @@ module atm_fsm (
 
             CARD_CHECK: begin
                 if (card_input == 2'b10) begin
-                    leds[0] = 1; // Card valid
+                    leds[0] = 1; // Valid card
                     beep = 1;
                     next_state = MENU;
                 end else if (card_input == 2'b01) begin
-                    leds[1] = 1; // Card invalid
+                    leds[1] = 1; // Invalid card
                     beep = 1;
                     next_state = IDLE;
                 end
@@ -92,11 +81,11 @@ module atm_fsm (
                 preview_active = 1;
                 beep = 1;
                 case (selected_mode)
-                    3'b001: seg_value = 4'd1;
-                    3'b010: seg_value = 4'd2;
-                    3'b011: seg_value = 4'd3;
-                    3'b100: seg_value = 4'd4;
-                    3'b101: seg_value = 4'd5;
+                    3'b001: seg_value = 4'd1; // Balance
+                    3'b010: seg_value = 4'd2; // Rapid Withdraw
+                    3'b011: seg_value = 4'd3; // Withdraw
+                    3'b100: seg_value = 4'd4; // Deposit
+                    3'b101: seg_value = 4'd5; // Exit
                     default: seg_value = 4'd0;
                 endcase
 
@@ -115,8 +104,8 @@ module atm_fsm (
             end
 
             DISPLAY_BALANCE: begin
-                leds[2] = 1;
-                seg_value = balance[3:0];
+                leds[2] = 1;               // Balance display indicator
+                leds[7:0] = balance;       // Binary display of balance on LD0-LD7
                 beep = 1;
                 next_state = MENU;
             end
@@ -135,10 +124,10 @@ module atm_fsm (
                 if (confirm_btn) begin
                     if (balance >= withdraw_amount) begin
                         balance = balance - withdraw_amount;
-                        leds[10] = 1; // Green
+                        leds[10] = 1; // Success (green LED)
                         beep = 1;
                     end else begin
-                        leds[9] = 1; // Red
+                        leds[9] = 1;  // Fail (red LED)
                         beep = 1;
                     end
                     next_state = MENU;
@@ -167,5 +156,6 @@ module atm_fsm (
     end
 
 endmodule
+
 
 
