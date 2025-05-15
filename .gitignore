@@ -1,21 +1,38 @@
-# Ignore Vivado junk
+# Vivado temporary and output files
 *.jou
 *.log
 *.str
-*.cache/
-*.hw/
-*.ip_user_files/
-*.runs/
-*.sim/
-*.webtalk/
-*.data/
-*.sdk/
-*.vivado/
-*.tmp/
-*.backup/
-*.wdb
+*.rpt
 *.dmp
-*.bin
-*.xsa
-*.bit
-*.bd
+*.mif
+*.html
+*.xml
+*.tmp
+*.pb
+*.wdb
+
+# Vivado build and cache directories
+.cache/
+.hw/
+.ip_user_files/
+.sim/
+.webtalk/
+.xil/
+*.runs/
+*.srcs/sources_1/ip/
+*.srcs/sources_1/bd/
+*.srcs/sources_1/ipshared/
+*.srcs/sources_1/bsps/
+project.xpr
+*.Xil/
+
+# Simulation output
+xsim.dir/
+xsim/
+sim_1/
+isim/
+
+# IDE stuff
+.vscode/
+*.autosave
+
